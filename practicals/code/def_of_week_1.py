@@ -1,23 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep  4 18:36:00 2019
+Created on Wed Sep 11 14:29:48 2019
 
 @author: s166895
 """
-
-import numpy as np
-from sklearn.datasets import load_diabetes, load_breast_cancer
-import operator
-from scipy.special import expit
-
-diabetes = load_diabetes()
-breast_cancer = load_breast_cancer()
-
-
-X_train = breast_cancer.data[:350, np.newaxis, 3]
-y_train = breast_cancer.target[:350, np.newaxis]
-X_test = breast_cancer.data[350:, np.newaxis, 3]
-y_test = breast_cancer.target[350:, np.newaxis]
 
 def distance(X_train, X_test):
     return np.sqrt(np.sum(np.power(X_train-X_test, 2)))    #calculates the distance between two points
@@ -56,16 +42,6 @@ def kNN_test(X_train, X_test, Y_train, Y_test, k):
     predicted_labels = np.array(predicted_labels)
     return predicted_labels
 
-predicted_labels = kNN_test(X_train, X_test, y_train, y_test, 5)
-print (predicted_labels)
-
-
 def error_squared(true_labels, predicted_labels):
     error = (1/len(predicted_labels))*np.sum(np.square(np.subtract(true_labels[:,0],predicted_labels)))
     return error
-
-knn_error = error_squared(y_test,predicted_labels) 
-print (knn_error)
-
-
-
