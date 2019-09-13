@@ -4,6 +4,12 @@ Created on Wed Sep 11 14:29:48 2019
 
 @author: s166895
 """
+import numpy as np
+from sklearn.datasets import load_diabetes, load_breast_cancer
+import operator
+from scipy.special import expit
+ 
+
 
 def distance(X_train, X_test):
     return np.sqrt(np.sum(np.power(X_train-X_test, 2)))    #calculates the distance between two points
