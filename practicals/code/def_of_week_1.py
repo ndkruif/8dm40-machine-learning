@@ -100,7 +100,6 @@ def kNN_test_reg(X_train_d, X_test_d, y_train_d, y_test_d, k):
     reg_labels = []
     for point in range(0, X_test_d.shape[0]):
         closest_neighbours = get_neighbours_index(X_train_d, X_test_d[point], k)
-        print(closest_neighbours)
         predictedLabel = predictkNNLabelsReg(closest_neighbours, y_train_d)
         reg_labels.append(np.array(predictedLabel))
     return reg_labels
