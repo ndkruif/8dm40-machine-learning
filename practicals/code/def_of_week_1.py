@@ -7,6 +7,7 @@ Created on Wed Sep 11 14:29:48 2019
 import numpy as np
 from sklearn.datasets import load_diabetes, load_breast_cancer
 import operator
+<<<<<<< HEAD
 from scipy.special import expit
 
 
@@ -14,6 +15,47 @@ def distance(X_train, X_test):
     return np.sqrt(np.sum(np.power(X_train-X_test, 2)))    #calculates the distance between two points
 
 def get_neighbours_index(X_train, X_test_individual, k):
+=======
+import matplotlib.pyplot as plt
+
+"""
+Linear regression"""
+
+def lsq(X, y):
+    """
+    Least squares linear regression
+    :param X: Input data matrix
+    :param y: Target vector
+    :return: Estimated coefficient vector for the linear regression
+    """
+
+    # add column of ones for the intercept
+    ones = np.ones((len(X), 1))
+    X = np.concatenate((ones, X), axis=1)
+
+    # calculate the coefficients
+    beta = np.dot(np.linalg.inv(np.dot(X.T, X)), np.dot(X.T, y))
+
+    return beta
+
+
+ 
+""" 
+Knn classifier """
+
+def distance(X_train, X_test):
+    """
+    This function calculates the distance between points in
+    the form of Euclidian distance"""
+    return np.sqrt(np.sum(np.power(X_train-X_test, 2)))    #calculates the distance between two points
+
+def get_neighbours_index(X_train, X_test_individual, k):
+    """
+    This function calculates all the distances of an individual
+    point of X_test with the X_train data. Then sort the
+    distances and return a list with the index value of the
+    nearest neighbours relative to the individual X_test point""" 
+>>>>>>> 257bdf16c0296fd6ce5c8b7277adf11ccb0a930f
     distances = []                # list for the distances
     neighbors_index = []                # list for the neighbors
     for i in range(0, X_train.shape[0]):
@@ -28,6 +70,13 @@ def get_neighbours_index(X_train, X_test_individual, k):
 
 
 def predictkNNLabels(closest_neighbors, y_train):
+<<<<<<< HEAD
+=======
+    """This function predicts the label of a individual point
+    in X_test based on the labels of the nearest neighbour(s).
+    And sums up the total of appearences of the labels and 
+    returns the label that occurs the most """
+>>>>>>> 257bdf16c0296fd6ce5c8b7277adf11ccb0a930f
     labelPrediction = {}
     for i in range(len(closest_neighbors)):
         if y_train[closest_neighbors[i]][0] in labelPrediction:
@@ -37,8 +86,25 @@ def predictkNNLabels(closest_neighbors, y_train):
     sortedLabelPrediction = sorted(labelPrediction.items(), key=operator.itemgetter(1), reverse=True)
     return sortedLabelPrediction[0][0]        # gives the most in common label
 
+<<<<<<< HEAD
 
 def kNN_test(X_train, X_test, Y_train, Y_test, k):
+=======
+def predictkNNLabelsReg(closest_neighbors, y_train): 
+    """predictKNNLabelsReg is a function that calculates the predicted label
+    with the regression method. It uses the closest_neighbors, which consists of all the
+    indices of the nearest neighbors"""
+    total = 0;
+    for i in range(len(closest_neighbors)):
+        total = total + y_train[closest_neighbors[i]][0];
+    LabelPrediction = total/len(closest_neighbors)
+    return LabelPrediction
+
+def kNN_test(X_train, X_test, Y_train, Y_test, k):
+    """ This function will give a list of predicted labels
+    of the x_test data with the use of the aforementioned
+    definitions"""
+>>>>>>> 257bdf16c0296fd6ce5c8b7277adf11ccb0a930f
     predicted_labels = []
     for point in range(0, X_test.shape[0]):
         closest_neighbours = get_neighbours_index(X_train, X_test[point], k)  #you get a list with the index of k nearest neighbours
@@ -47,6 +113,22 @@ def kNN_test(X_train, X_test, Y_train, Y_test, k):
     predicted_labels = np.array(predicted_labels)
     return predicted_labels
 
+<<<<<<< HEAD
 def error_squared(true_labels, predicted_labels):
+=======
+def kNN_test_reg(X_train_d, X_test_d, y_train_d, y_test_d, k):
+    "This function gives a list of predicted labels of the x_test data with the kNN-regression method"
+    reg_labels = []
+    for point in range(0, X_test_d.shape[0]):
+        closest_neighbours = get_neighbours_index(X_train_d, X_test_d[point], k)
+        predictedLabel = predictkNNLabelsReg(closest_neighbours, y_train_d)
+        reg_labels.append(np.array(predictedLabel))
+    return reg_labels
+
+
+def error_squared(true_labels, predicted_labels):
+    """ This function calculates the error between the 
+    predicted labels and the true labels """
+>>>>>>> 257bdf16c0296fd6ce5c8b7277adf11ccb0a930f
     error = (1/len(predicted_labels))*np.sum(np.square(np.subtract(true_labels[:,0],predicted_labels)))
     return error
