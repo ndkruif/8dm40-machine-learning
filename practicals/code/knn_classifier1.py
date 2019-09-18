@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # -*- coding: utf-8 -*-
 """
 Created on Wed Sep  4 18:36:00 2019
@@ -69,8 +68,6 @@ knn_error = error_squared(y_test,predicted_labels)
 print (knn_error)
 
 
-
-=======
 # -*- coding: utf-8 -*-
 """
 Created on Wed Sep  4 18:36:00 2019
@@ -135,6 +132,16 @@ def predictkNNLabels(closest_neighbors, y_train):
     return sortedLabelPrediction[0][0]        # gives the most in common label
 
 
+def predictkNNLabelsReg(closest_neighbors, y_train): 
+    """predictKNNLabelsReg is a function that calculates the predicted label
+    with the regression method. It uses the closest_neighbors, which consists of all the
+    indices of the nearest neighbors"""
+    total = 0;
+    for i in range(len(closest_neighbors)):
+        total = total + y_train[closest_neighbors[i]][0];
+    LabelPrediction = total/len(closest_neighbors)
+    return LabelPrediction   
+
 def kNN_test(X_train, X_test, Y_train, Y_test, k):
     """ This function will give a list of predicted labels
     of the x_test data with the use of the aforementioned
@@ -146,6 +153,16 @@ def kNN_test(X_train, X_test, Y_train, Y_test, k):
         predicted_labels.append(np.array(predictedLabels))                             #makes a new list of predicted labels which corresponds with the x_test
     predicted_labels = np.array(predicted_labels)
     return predicted_labels
+
+
+def kNN_test_reg(X_train_d, X_test_d, y_train_d, y_test_d, k):
+    "This function gives a list of predicted labels of the x_test data with the kNN-regression method"
+    reg_labels = []
+    for point in range(0, X_test_d.shape[0]):
+        closest_neighbours = get_neighbours_index(X_train_d, X_test_d[point], k)
+        predictedLabel = predictkNNLabelsReg(closest_neighbours, y_train_d)
+        reg_labels.append(np.array(predictedLabel))
+    return reg_labels
 
 
 def error_squared(true_labels, predicted_labels):
@@ -177,4 +194,3 @@ plt.show()
 whichK = sorted(dict_of_errors.items(), key=operator.itemgetter(1))
 bestKvalue = whichK[0][0]
 print (bestKvalue)
->>>>>>> 257bdf16c0296fd6ce5c8b7277adf11ccb0a930f
