@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # -*- coding: utf-8 -*-
 """
 Created on Wed Sep  4 18:36:00 2019
@@ -9,6 +10,15 @@ import numpy as np
 from sklearn.datasets import load_diabetes, load_breast_cancer
 import operator
 from scipy.special import expit
+
+diabetes = load_diabetes()
+breast_cancer = load_breast_cancer()
+
+
+X_train = breast_cancer.data[:350, np.newaxis, 3]
+y_train = breast_cancer.target[:350, np.newaxis]
+X_test = breast_cancer.data[350:, np.newaxis, 3]
+y_test = breast_cancer.target[350:, np.newaxis]
 
 def distance(X_train, X_test):
     return np.sqrt(np.sum(np.power(X_train-X_test, 2)))    #calculates the distance between two points
@@ -59,6 +69,8 @@ knn_error = error_squared(y_test,predicted_labels)
 print (knn_error)
 
 
+
+=======
 # -*- coding: utf-8 -*-
 """
 Created on Wed Sep  4 18:36:00 2019
@@ -71,6 +83,17 @@ from sklearn.datasets import load_diabetes, load_breast_cancer
 import operator
 import matplotlib.pyplot as plt
 
+diabetes = load_diabetes()
+breast_cancer = load_breast_cancer()
+
+x = breast_cancer.data[:]
+# normalize the data
+x = (x-np.mean(x))/np.std(x)   
+    
+X_train = x[:350]
+y_train = breast_cancer.target[:350, np.newaxis]
+X_test = x[350:]
+y_test = breast_cancer.target[350:, np.newaxis]
 
 def distance(X_train, X_test):
     """
@@ -112,16 +135,6 @@ def predictkNNLabels(closest_neighbors, y_train):
     return sortedLabelPrediction[0][0]        # gives the most in common label
 
 
-def predictkNNLabelsReg(closest_neighbors, y_train): 
-    """predictKNNLabelsReg is a function that calculates the predicted label
-    with the regression method. It uses the closest_neighbors, which consists of all the
-    indices of the nearest neighbors"""
-    total = 0;
-    for i in range(len(closest_neighbors)):
-        total = total + y_train[closest_neighbors[i]][0];
-    LabelPrediction = total/len(closest_neighbors)
-    return LabelPrediction   
-
 def kNN_test(X_train, X_test, Y_train, Y_test, k):
     """ This function will give a list of predicted labels
     of the x_test data with the use of the aforementioned
@@ -135,18 +148,33 @@ def kNN_test(X_train, X_test, Y_train, Y_test, k):
     return predicted_labels
 
 
-def kNN_test_reg(X_train_d, X_test_d, y_train_d, y_test_d, k):
-    "This function gives a list of predicted labels of the x_test data with the kNN-regression method"
-    reg_labels = []
-    for point in range(0, X_test_d.shape[0]):
-        closest_neighbours = get_neighbours_index(X_train_d, X_test_d[point], k)
-        predictedLabel = predictkNNLabelsReg(closest_neighbours, y_train_d)
-        reg_labels.append(np.array(predictedLabel))
-    return reg_labels
-
-
 def error_squared(true_labels, predicted_labels):
     """ This function calculates the error between the 
     predicted labels and the true labels """
     error = (1/len(predicted_labels))*np.sum(np.square(np.subtract(true_labels[:,0],predicted_labels)))
     return error
+
+dict_of_errors ={}
+# the value of k needs always to be an odd number
+for k in range(1,len(X_train)+1,2):        
+    predicted_labels = kNN_test(X_train, X_test, y_train, y_test, k)
+    #calculates the error of every k
+    knn_error = error_squared(y_test,predicted_labels)   
+    if k in dict_of_errors:
+        print (k)
+    # creates a dictionary with the k as key and the error as value
+    else:
+        dict_of_errors[k]=knn_error
+    
+# It plots all the errors (y-as) against the k value's (x-as)
+plt.plot(list(dict_of_errors.keys()), list(dict_of_errors.values()))
+plt.xlabel('value of k')
+plt.ylabel('error')
+plt.title('predicting which k is optimal for the lowest error')
+plt.show()
+
+# It will print the value of K with the lowest error
+whichK = sorted(dict_of_errors.items(), key=operator.itemgetter(1))
+bestKvalue = whichK[0][0]
+print (bestKvalue)
+>>>>>>> 257bdf16c0296fd6ce5c8b7277adf11ccb0a930f
