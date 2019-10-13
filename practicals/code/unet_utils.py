@@ -102,6 +102,23 @@ def extract_patches(images, segmentations, patch_size, patches_per_im, seed):
 
     return x, y
 
+#Brightness augmentation function
+def rnd_brightning(images, segmentations, augm_size, augm_per_im):
+  
+    # The total amount of patches that will be obtained
+    inp_size = len(images) * augm_per_im
+    # Allocate memory for the patches and segmentations of the patches
+    x = np.zeros((inp_size, augm_size[0], augm_size[1], images.shape[-1]))
+    y = np.zeros((inp_size, augm_size[0], augm_size[1], segmentations.shape[-1]))
+    shape = (augm_per_im,1,1,1)
+    # Loop over all the images (and corresponding segmentations) and add random brightness
+    for idx, (im, seg) in enumerate(zip(images, segmentations)):
+        random_matrix_array = 0.01*np.random.rand(augm_per_im,1,1,1)
+        x[idx * augm_per_im:(idx + 1) * augm_per_im] = images[idx] + random_matrix_array
+        y[idx * augm_per_im:(idx + 1) * augm_per_im] = seg + np.zeros(shape)
+
+    return x, y
+
 
 # Create a very simple datagenerator
 def datagenerator(images, segmentations, patch_size, patches_per_im, batch_size):
@@ -124,6 +141,26 @@ def datagenerator(images, segmentations, patch_size, patches_per_im, batch_size)
     while True:
         # Each epoch extract different patches from the training images
         x, y = extract_patches(images, segmentations, patch_size, patches_per_im, seed=np.random.randint(0, 500))
+
+        # Feed data in batches to the network
+        for idx in range(nr_batches):
+            x_batch = x[idx * batch_size:(idx + 1) * batch_size]
+            y_batch = y[idx * batch_size:(idx + 1) * batch_size]
+            yield x_batch, y_batch
+            
+#Datagenerator that generates images with random brightness augmentation
+def datageneratorbrn(images, segmentations, augm_size, augm_per_im, batch_size):
+    """
+    Simple data-generator to feed images augmented with random brightness to the network
+    """
+    # Total number of augmented images generated per epoch
+    total_augm = len(images) * augm_per_im
+    # Amount of batches in one epoch
+    nr_batches = int(np.ceil(total_augm / batch_size))
+
+    while True:
+        # Each epoch apply different brightness offset
+        x, y = rnd_brightning(images, segmentations, augm_size, augm_per_im)
 
         # Feed data in batches to the network
         for idx in range(nr_batches):
