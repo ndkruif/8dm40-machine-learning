@@ -101,7 +101,6 @@ def extract_patches(images, segmentations, patch_size, patches_per_im, seed):
             axis=-1)
 
     return x, y
-
 def rnd_brightning(images, segmentations, patch_size, patches_per_im, seed):
     """
     Extract patches from images
@@ -114,7 +113,7 @@ def rnd_brightning(images, segmentations, patch_size, patches_per_im, seed):
     :return: x: numpy array of patches and y: numpy array of patches segmentations
     """
     
-    random_matrix_array = 0.01*np.random.rand(patches_per_im,1,1,1)
+    random_matrix_array = 0.01*np.random.rand(1,1,1,1)
     images = images + random_matrix_array
     
     # The total amount of patches that will be obtained
@@ -137,33 +136,25 @@ def rnd_brightning(images, segmentations, patch_size, patches_per_im, seed):
     return x, y
 
 def b_spline(images, segmentations, patch_size, patches_per_im, seed):
-    """
-    Extract patches from images
 
-    :param images: Input images
-    :param segmentations: Corresponding segmentations
-    :param patch_size: Desired patch size
-    :param patches_per_im: Amount of patches to extract per image
-    :param seed: Random seed to ensure matching patches between image and segmentation
-    :return: x: numpy array of patches and y: numpy array of patches segmentations
-    """
-    
-    random_matrix_array = 0.01*np.random.rand(patches_per_im,1,1,1)
-    images = images + random_matrix_array
-    # Define a random 3x3 B-spline grid for a 2D image:
-    random_grid = np.random.rand(2, 3, 3)
+    # Define a random 3x3 B-spline grid for a 4D image:
+    random_grid = np.random.rand(4, 3, 3, 1, 1)
     random_grid -= 0.5
     random_grid /= 5
 
-# Define a B-spline transformation object
+    # Define a B-spline transformation object
     bspline = gryds.BSplineTransformation(random_grid)
 
-# Define an interpolator object for the image:
+    # Define an interpolator object for the image:
     interpolator = gryds.Interpolator(images)
 
-# Transform the image using the B-spline transformation
+    # Transform the image using the B-spline transformation
     images = interpolator.transform(bspline)
     
+    #Define a random brightness shift
+    random_matrix_array = 0.01*np.random.rand(1,1,1,1)
+    images = images + random_matrix_array
+
     # The total amount of patches that will be obtained
     inp_size = len(images) * patches_per_im
     # Allocate memory for the patches and segmentations of the patches
@@ -182,7 +173,6 @@ def b_spline(images, segmentations, patch_size, patches_per_im, seed):
             axis=-1)
 
     return x, y
-
 
 # Create a very simple datagenerator
 def datagenerator(images, segmentations, patch_size, patches_per_im, batch_size):
