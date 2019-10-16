@@ -102,20 +102,84 @@ def extract_patches(images, segmentations, patch_size, patches_per_im, seed):
 
     return x, y
 
-#Brightness augmentation function
-def rnd_brightning(images, segmentations, augm_size, augm_per_im):
-  
+def rnd_brightning(images, segmentations, patch_size, patches_per_im, seed):
+    """
+    Extract patches from images
+
+    :param images: Input images
+    :param segmentations: Corresponding segmentations
+    :param patch_size: Desired patch size
+    :param patches_per_im: Amount of patches to extract per image
+    :param seed: Random seed to ensure matching patches between image and segmentation
+    :return: x: numpy array of patches and y: numpy array of patches segmentations
+    """
+    
+    random_matrix_array = 0.01*np.random.rand(patches_per_im,1,1,1)
+    images = images + random_matrix_array
+    
     # The total amount of patches that will be obtained
-    inp_size = len(images) * augm_per_im
+    inp_size = len(images) * patches_per_im
     # Allocate memory for the patches and segmentations of the patches
-    x = np.zeros((inp_size, augm_size[0], augm_size[1], images.shape[-1]))
-    y = np.zeros((inp_size, augm_size[0], augm_size[1], segmentations.shape[-1]))
-    shape = (augm_per_im,1,1,1)
-    # Loop over all the images (and corresponding segmentations) and add random brightness
+    x = np.zeros((inp_size, patch_size[0], patch_size[1], images.shape[-1]))
+    y = np.zeros((inp_size, patch_size[0], patch_size[1], segmentations.shape[-1]))
+
+    # Loop over all the images (and corresponding segmentations) and extract random patches 
+    # using the extract_patches_2d function of scikit learn
     for idx, (im, seg) in enumerate(zip(images, segmentations)):
-        random_matrix_array = 0.01*np.random.rand(augm_per_im,1,1,1)
-        x[idx * augm_per_im:(idx + 1) * augm_per_im] = images[idx] + random_matrix_array
-        y[idx * augm_per_im:(idx + 1) * augm_per_im] = seg + np.zeros(shape)
+        # Note the random seed to ensure the corresponding segmentation is extracted for each patch
+        x[idx * patches_per_im:(idx + 1) * patches_per_im] = extract_patches_2d(im, patch_size,
+                                                                                max_patches=patches_per_im,
+                                                                                random_state=seed)
+        y[idx * patches_per_im:(idx + 1) * patches_per_im] = np.expand_dims(
+            extract_patches_2d(seg, patch_size, max_patches=patches_per_im, random_state=seed),
+            axis=-1)
+
+    return x, y
+
+def b_spline(images, segmentations, patch_size, patches_per_im, seed):
+    """
+    Extract patches from images
+
+    :param images: Input images
+    :param segmentations: Corresponding segmentations
+    :param patch_size: Desired patch size
+    :param patches_per_im: Amount of patches to extract per image
+    :param seed: Random seed to ensure matching patches between image and segmentation
+    :return: x: numpy array of patches and y: numpy array of patches segmentations
+    """
+    
+    random_matrix_array = 0.01*np.random.rand(patches_per_im,1,1,1)
+    images = images + random_matrix_array
+    # Define a random 3x3 B-spline grid for a 2D image:
+    random_grid = np.random.rand(2, 3, 3)
+    random_grid -= 0.5
+    random_grid /= 5
+
+# Define a B-spline transformation object
+    bspline = gryds.BSplineTransformation(random_grid)
+
+# Define an interpolator object for the image:
+    interpolator = gryds.Interpolator(images)
+
+# Transform the image using the B-spline transformation
+    images = interpolator.transform(bspline)
+    
+    # The total amount of patches that will be obtained
+    inp_size = len(images) * patches_per_im
+    # Allocate memory for the patches and segmentations of the patches
+    x = np.zeros((inp_size, patch_size[0], patch_size[1], images.shape[-1]))
+    y = np.zeros((inp_size, patch_size[0], patch_size[1], segmentations.shape[-1]))
+
+    # Loop over all the images (and corresponding segmentations) and extract random patches 
+    # using the extract_patches_2d function of scikit learn
+    for idx, (im, seg) in enumerate(zip(images, segmentations)):
+        # Note the random seed to ensure the corresponding segmentation is extracted for each patch
+        x[idx * patches_per_im:(idx + 1) * patches_per_im] = extract_patches_2d(im, patch_size,
+                                                                                max_patches=patches_per_im,
+                                                                                random_state=seed)
+        y[idx * patches_per_im:(idx + 1) * patches_per_im] = np.expand_dims(
+            extract_patches_2d(seg, patch_size, max_patches=patches_per_im, random_state=seed),
+            axis=-1)
 
     return x, y
 
@@ -160,7 +224,7 @@ def datageneratorbrn(images, segmentations, augm_size, augm_per_im, batch_size):
 
     while True:
         # Each epoch apply different brightness offset
-        x, y = rnd_brightning(images, segmentations, augm_size, augm_per_im)
+        x, y = rnd_brightning(images, segmentations, augm_size, augm_per_im, seed=np.random.randint(0, 500))
 
         # Feed data in batches to the network
         for idx in range(nr_batches):
@@ -168,3 +232,22 @@ def datageneratorbrn(images, segmentations, augm_size, augm_per_im, batch_size):
             y_batch = y[idx * batch_size:(idx + 1) * batch_size]
             yield x_batch, y_batch
 
+#Datagenerator that generates images with random brightness augmentation AND b_spline
+def datagen_brn_bspline(images, segmentations, augm_size, augm_per_im, batch_size):
+    """
+    Simple data-generator to feed images augmented with random brightness to the network
+    """
+    # Total number of augmented images generated per epoch
+    total_augm = len(images) * augm_per_im
+    # Amount of batches in one epoch
+    nr_batches = int(np.ceil(total_augm / batch_size))
+
+    while True:
+        # Each epoch apply different brightness offset
+        x, y = b_spline(images, segmentations, augm_size, augm_per_im, seed=np.random.randint(0, 500))
+
+        # Feed data in batches to the network
+        for idx in range(nr_batches):
+            x_batch = x[idx * batch_size:(idx + 1) * batch_size]
+            y_batch = y[idx * batch_size:(idx + 1) * batch_size]
+            yield x_batch, y_batch
